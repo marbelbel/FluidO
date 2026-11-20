@@ -1,0 +1,8 @@
+FluidOS 0.1.0-alpha
+
+Esta edicion es experimental y esta destinada a pruebas en equipos x86-64.
+La misma ISO permite iniciar el escritorio Live o abrir el instalador desde
+Aplicaciones. El instalador necesita un disco virtual nuevo y vacio.
+
+Foot se incluye como herramienta tecnica para el instalador y la recuperacion,
+pero no aparece en el dock, el lanzador ni en los atajos normales del escritorio.

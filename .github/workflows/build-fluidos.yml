@@ -1,0 +1,72 @@
+name: Build FluidOS Live + Installer ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-fluidos.yml'
+      - 'README.md'
+      - 'build-fluidos.sh'
+      - 'desktop/**'
+      - 'mfsbsd/**'
+      - 'customfiles/**'
+      - 'customscripts/**'
+      - 'tools_*.py'
+      - 'tests/**'
+      - 'docs/**'
+      - 'licenses/**'
+
+permissions:
+  contents: read
+
+jobs:
+  source-checks:
+    name: Check FluidOS source files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check shell and Python syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n build-fluidos.sh
+          sh -n customscripts/10-fluid-user.sh
+          sh -n customfiles/usr/local/bin/fluidos-session
+          sh -n customfiles/usr/local/bin/fluidos-shell
+          sh -n customfiles/usr/local/sbin/fluidos-install
+          python3 -m py_compile desktop/fluidos-shell.py tools_check_splash.py tools_patch_mfsbsd.py
+          bash tests/check-source.sh
+
+  build-iso:
+    name: Build ISO on FreeBSD 14.5
+    needs: source-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build FluidOS inside FreeBSD 14.5
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.5'
+          mem: 8G
+          usesh: true
+          sync: rsync
+          copyback: true
+          run: |
+            set -eu
+            cd "$GITHUB_WORKSPACE"
+            sh ./build-fluidos.sh
+      - name: Upload the dual-purpose ISO and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: FluidOS-0.1.0-alpha-amd64
+          path: |
+            out/FluidOS-0.1.0-alpha-14.5-RELEASE-amd64-Live-Installer.iso
+            out/FluidOS-0.1.0-alpha-14.5-RELEASE-amd64-Live-Installer.iso.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

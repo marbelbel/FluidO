@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.iso
+*.iso.xz
+*.vdi
+*.vbox
+*.log
+out/*
+!out/.gitkeep

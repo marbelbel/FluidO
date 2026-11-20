@@ -1,0 +1,12 @@
+
+             FluidOS 0.1.0-alpha
+
+       Entorno de prueba en memoria
+
+Este sistema se ejecuta desde una imagen Live.
+Los cambios de esta sesion no se guardan al apagar.
+
+Para instalar en un disco virtual nuevo y vacio:
+  doas /usr/local/sbin/fluidos-install
+
+No uses el instalador en un disco con datos importantes.

@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+
+export XDG_CURRENT_DESKTOP=FluidOS
+export XDG_SESSION_DESKTOP=FluidOS
+export XDG_SESSION_TYPE=wayland
+export GDK_BACKEND=wayland
+export LIBSEAT_BACKEND=seatd
+
+UID_NUMBER="$(id -u)"
+RUNTIME_DIR="/var/run/user/${UID_NUMBER}"
+mkdir -p "$RUNTIME_DIR"
+chown "$(id -un):$(id -gn)" "$RUNTIME_DIR"
+chmod 0700 "$RUNTIME_DIR"
+export XDG_RUNTIME_DIR="$RUNTIME_DIR"
+
+if ! command -v wayfire >/dev/null 2>&1; then
+    echo "No se encuentra Wayfire. Puedes seguir usando esta consola." >&2
+    exit 1
+fi
+if ! command -v dbus-run-session >/dev/null 2>&1; then
+    echo "No se encuentra dbus-run-session. Puedes seguir usando esta consola." >&2
+    exit 1
+fi
+
+cd "$HOME"
+exec dbus-run-session -- wayfire -c "$HOME/.config/wayfire/wayfire.ini"

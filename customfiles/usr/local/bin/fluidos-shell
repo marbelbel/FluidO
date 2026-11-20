@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+export XDG_CURRENT_DESKTOP=FluidOS
+export XDG_SESSION_DESKTOP=FluidOS
+export XDG_SESSION_TYPE=wayland
+export GDK_BACKEND=wayland
+exec /usr/local/bin/python3.12 /usr/local/lib/fluidos/fluidos-shell.py "$@"
