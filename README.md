@@ -86,4 +86,6 @@ doas /usr/local/sbin/fluidos-app verify ejemplo.fapp
 
 El documento `docs/FORMATO-FAPP.md` describe el formato y sus límites. `docs/PLAN-NUEVE-RONDAS.md` separa lo existente de lo que sigue pendiente.
 
-**Importante:** el registro de preferencias no significa que cada ajuste ya esté conectado. El gestor `.fapp` no tiene todavía tienda, firma digital ni aislamiento de procesos; las solicitudes de permisos se registran, pero aún no se aplican como barrera de seguridad. La copia de seguridad es manual y todavía no existe un asistente gráfico de restauración. La IA, sincronización, navegador propio, recuperación avanzada, cifrado integral y soporte ARM64 siguen pendientes.
+**Fases 4 y 5 (integración incremental):** se incorpora un asistente local de órdenes permitidas, búsqueda de nombres de archivos y confirmación antes de abrir archivos/aplicaciones o solicitar apagado/reinicio. También se aplican temas, acento, fondos, tamaño del Dock, adaptación por ancho de pantalla y distribución de escritorios Wayfire. El asistente no es aún un modelo generativo y no incluye voz, sincronización ni transferencia entre dispositivos. Las preferencias del shell requieren reiniciar la sesión.
+
+**Importante:** el gestor `.fapp` no tiene todavía tienda firmada ni aislamiento de procesos; las solicitudes de permisos de paquetes no constituyen una barrera de seguridad. La copia de seguridad es manual. La IA generativa, voz, sincronización, navegador propio, recuperación avanzada, cifrado integral, widgets, gestos y soporte ARM64 siguen pendientes.

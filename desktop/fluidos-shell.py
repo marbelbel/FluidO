@@ -111,6 +111,19 @@ class FluidShell:
             overrides += b"window { color: #142638; } .topbar { background: rgba(235,246,253,.94); } .brand,.clock,.top-button { color: #142638; } .dock { background: rgba(225,241,250,.94); } .dock button { color: #142638; } .panel { background: rgba(238,247,252,.98); color: #142638; } .panel-title { color: #142638; }"
         elif theme == "dark":
             overrides += b".topbar { background: rgba(5,8,15,.97); } .dock { background: rgba(7,12,22,.96); } .panel { background: rgba(7,12,22,.99); }"
+        # FluidOS Phase 4/5: dock adaptativo y dimensiones elegidas por el usuario.
+        appearance = self.settings.get("appearance", {})
+        mode = appearance.get("desktop_mode", "automatic")
+        screen = Gdk.Screen.get_default()
+        if mode == "automatic":
+            mode = "tablet" if screen and screen.get_width() < 1000 else "desktop"
+        dock_size = appearance.get("dock_size", "normal")
+        if mode == "tablet" and dock_size == "normal":
+            dock_size = "large"
+        metrics = {"small": (42, 42, 7), "normal": (52, 52, 8), "large": (62, 62, 10)}
+        button_w, button_h, dock_pad = metrics.get(dock_size, metrics["normal"])
+        overrides += (f".dock button {{ min-width: {button_w}px; min-height: {button_h}px; }} "
+                      f".dock {{ padding: {dock_pad}px {dock_pad + 3}px; }}").encode()
         provider.load_from_data(CSS + overrides)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
@@ -149,13 +162,19 @@ class FluidShell:
         self.wallpaper.add(area)
         self.wallpaper.show_all()
 
-    @staticmethod
-    def draw_wallpaper(widget, cr):
+    def draw_wallpaper(self, widget, cr):
         width, height = widget.get_allocated_width(), widget.get_allocated_height()
         gradient = __import__("cairo").LinearGradient(0, 0, width, height)
-        gradient.add_color_stop_rgb(0.0, 0.012, 0.035, 0.075)
-        gradient.add_color_stop_rgb(0.52, 0.015, 0.12, 0.22)
-        gradient.add_color_stop_rgb(1.0, 0.015, 0.25, 0.34)
+        wallpaper = self.settings.get("appearance", {}).get("wallpaper", "ocean")
+        palettes = {
+            "ocean": ((0.012, 0.035, 0.075), (0.015, 0.12, 0.22), (0.015, 0.25, 0.34)),
+            "aurora": ((0.025, 0.035, 0.11), (0.08, 0.12, 0.30), (0.02, 0.28, 0.25)),
+            "graphite": ((0.025, 0.035, 0.05), (0.10, 0.13, 0.17), (0.20, 0.24, 0.29)),
+        }
+        stops = palettes.get(wallpaper, palettes["ocean"])
+        gradient.add_color_stop_rgb(0.0, *stops[0])
+        gradient.add_color_stop_rgb(0.52, *stops[1])
+        gradient.add_color_stop_rgb(1.0, *stops[2])
         cr.set_source(gradient)
         cr.paint()
         cr.set_source_rgba(.27, .76, .94, .13)
@@ -191,6 +210,7 @@ class FluidShell:
         bar.pack_start(self.top_button("Archivos", self.open_files), False, False, 0)
         bar.pack_start(self.top_button("Sistema", self.show_system), False, False, 0)
         bar.pack_start(self.top_button("Ajustes", lambda: launch(["fluidos-control"])), False, False, 0)
+        bar.pack_start(self.top_button("Asistente", lambda: launch(["fluidos-assistant"])), False, False, 0)
         bar.pack_start(self.top_button("Usuarios", lambda: launch(["fluidos-users-panel"])), False, False, 0)
         bar.pack_start(self.top_button("Centro apps", lambda: launch(["fluidos-app-center"])), False, False, 0)
         bar.pack_start(Gtk.Box(), True, True, 0)
@@ -209,8 +229,17 @@ class FluidShell:
         return btn
 
     def _create_dock(self):
+        dock_size = self.settings.get("appearance", {}).get("dock_size", "normal")
+        mode = self.settings.get("appearance", {}).get("desktop_mode", "automatic")
+        screen = Gdk.Screen.get_default()
+        if mode == "automatic":
+            mode = "tablet" if screen and screen.get_width() < 1000 else "desktop"
+        if mode == "tablet" and dock_size == "normal":
+            dock_size = "large"
+        dock_dimensions = {"small": (370, 64), "normal": (440, 72), "large": (520, 86)}
+        dock_width, dock_height = dock_dimensions.get(dock_size, dock_dimensions["normal"])
         self.dock_window = self.layer_window(
-            "dock", GtkLayerShell.Layer.TOP, (440, 72),
+            "dock", GtkLayerShell.Layer.TOP, (dock_width, dock_height),
             {GtkLayerShell.Edge.BOTTOM: True}, {GtkLayerShell.Edge.BOTTOM: 16},
         )
         GtkLayerShell.set_exclusive_zone(self.dock_window, -1)
@@ -223,6 +252,7 @@ class FluidShell:
             ("◎", "Navegador", lambda: launch(["firefox"])),
             ("⚙", "Sistema", self.show_system),
             ("✧", "Ajustes", lambda: launch(["fluidos-control"])),
+            ("✦", "Asistente", lambda: launch(["fluidos-assistant"])),
             ("▣", "Aplicaciones", lambda: launch(["fluidos-app-center"])),
         ]
         for glyph, title, callback in items:
@@ -268,6 +298,7 @@ class FluidShell:
             ("◎\nNavegador", lambda: launch(["firefox"])),
             ("⚙\nInformación del sistema", self.show_system),
             ("✧\nAjustes", lambda: launch(["fluidos-control"])),
+            ("✦\nAsistente", lambda: launch(["fluidos-assistant"])),
             ("👤\nUsuarios", lambda: launch(["fluidos-users-panel"])),
             ("▣\nCentro de aplicaciones", lambda: launch(["fluidos-app-center"])),
             ("▦\nOfimática", lambda: launch(["libreoffice"])),

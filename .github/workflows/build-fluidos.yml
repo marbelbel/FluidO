@@ -37,8 +37,11 @@ jobs:
           sh -n customscripts/10-fluid-user.sh
           sh -n customfiles/usr/local/bin/fluidos-session
           sh -n customfiles/usr/local/bin/fluidos-shell
+          sh -n customfiles/usr/local/bin/fluidos-assistant
+          sh -n customfiles/usr/local/bin/fluidos-personalization
+          sh -n customfiles/usr/local/etc/rc.d/fluidos-graphics
           sh -n customfiles/usr/local/sbin/fluidos-install
-          python3 -m py_compile desktop/fluidos-shell.py desktop/fluidos-control.py desktop/fluidos-app-center.py desktop/fluidos-users-panel.py tools/fluidos-app.py tools/fluidos-restore.py tools/fluidos-users.py tools_check_splash.py tools_patch_mfsbsd.py tests/test_fluidos_app.py tests/test_apply_patch.py tests/test_fluidos_restore.py tests/test_fluidos_users.py
+          python3 -m py_compile desktop/fluidos-shell.py desktop/fluidos-control.py desktop/fluidos-assistant.py desktop/fluidos-app-center.py desktop/fluidos-users-panel.py tools/fluidos_assistant.py tools/fluidos_personalization.py tools/fluidos-app.py tools/fluidos-restore.py tools/fluidos-users.py tools_check_splash.py tools_patch_mfsbsd.py tests/test_fluidos_assistant.py tests/test_fluidos_personalization.py tests/test_fluidos_app.py tests/test_apply_patch.py tests/test_fluidos_restore.py tests/test_fluidos_users.py
           python3 -m unittest discover -s tests -v
           sh -n customfiles/usr/local/bin/fluidos-backup
           sh -n customfiles/usr/local/bin/fluidos-app-center

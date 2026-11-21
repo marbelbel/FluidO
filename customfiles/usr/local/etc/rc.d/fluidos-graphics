@@ -1,0 +1,33 @@
+#!/bin/sh
+# Load DRM modules only for detected Intel/AMD physical display controllers.
+# VirtualBox's virtual VGA (vendor 0x80ee) is deliberately left alone.
+
+# PROVIDE: fluidos_graphics
+# REQUIRE: LOGIN
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+name="fluidos_graphics"
+rcvar="fluidos_graphics_enable"
+start_cmd="fluidos_graphics_start"
+stop_cmd=":"
+
+fluidos_graphics_start()
+{
+    command -v pciconf >/dev/null 2>&1 || return 0
+    if ! command -v kldload >/dev/null 2>&1; then
+        return 0
+    fi
+    devices="$(pciconf -l 2>/dev/null || true)"
+    printf '%s\n' "$devices" | grep 'class=0x03' | grep -q 'vendor=0x8086' && {
+        kldstat -q -m i915kms 2>/dev/null || kldload i915kms 2>/dev/null || true
+    }
+    printf '%s\n' "$devices" | grep 'class=0x03' | grep -q 'vendor=0x1002' && {
+        kldstat -q -m amdgpu 2>/dev/null || kldload amdgpu 2>/dev/null || true
+    }
+    return 0
+}
+
+load_rc_config "$name"
+: ${fluidos_graphics_enable:="YES"}
+run_rc_command "$1"

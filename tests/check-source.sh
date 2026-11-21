@@ -8,6 +8,15 @@ for file in \
     README.md \
     build-fluidos.sh \
     desktop/fluidos-shell.py \
+    desktop/fluidos-assistant.py \
+    desktop/fluidos-control.py \
+    tools/fluidos_assistant.py \
+    tools/fluidos_personalization.py \
+    customfiles/usr/local/bin/fluidos-assistant \
+    customfiles/usr/local/bin/fluidos-personalization \
+    customfiles/usr/local/etc/rc.d/fluidos-graphics \
+    customfiles/usr/local/lib/fluidos/fluidos_assistant.py \
+    customfiles/usr/local/lib/fluidos/fluidos_personalization.py \
     tools_check_splash.py \
     artwork/fluidos-splash-master.png \
     tools_patch_mfsbsd.py \
@@ -73,4 +82,10 @@ grep -q 'fluidos-control.py' build-fluidos.sh
 grep -q 'libreoffice es-libreoffice' customfiles/usr/local/sbin/fluidos-install
 grep -q 'fluidos-app.py' .github/workflows/build-fluidos.yml
 grep -q 'Ajustes' desktop/fluidos-shell.py
+grep -q 'fluidos-assistant' desktop/fluidos-shell.py
+grep -q 'fluidos_graphics_enable' customfiles/usr/local/sbin/fluidos-install
+if grep -q '^kld_list="i915kms amdgpu"' mfsbsd/conf/rc.conf customfiles/usr/local/sbin/fluidos-install; then
+    echo "DRM modules must not be loaded unconditionally at early boot." >&2
+    exit 1
+fi
 echo "FluidOS source checks passed."

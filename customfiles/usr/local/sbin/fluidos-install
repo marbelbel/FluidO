@@ -127,15 +127,22 @@ cp /usr/local/lib/fluidos/fluidos-app-center.py /mnt/usr/local/lib/fluidos/fluid
 cp /usr/local/lib/fluidos/fluidos-users-panel.py /mnt/usr/local/lib/fluidos/fluidos-users-panel.py
 cp /usr/local/lib/fluidos/fluidos-restore.py /mnt/usr/local/lib/fluidos/fluidos-restore.py
 cp /usr/local/lib/fluidos/fluidos-users.py /mnt/usr/local/lib/fluidos/fluidos-users.py
+cp /usr/local/lib/fluidos/fluidos-assistant.py /mnt/usr/local/lib/fluidos/fluidos-assistant.py
+cp /usr/local/lib/fluidos/fluidos_assistant.py /mnt/usr/local/lib/fluidos/fluidos_assistant.py
+cp /usr/local/lib/fluidos/fluidos_personalization.py /mnt/usr/local/lib/fluidos/fluidos_personalization.py
 cp /usr/local/bin/fluidos-control /mnt/usr/local/bin/fluidos-control
 cp /usr/local/bin/fluidos-backup /mnt/usr/local/bin/fluidos-backup
 cp /usr/local/bin/fluidos-app-center /mnt/usr/local/bin/fluidos-app-center
 cp /usr/local/bin/fluidos-restore /mnt/usr/local/bin/fluidos-restore
 cp /usr/local/bin/fluidos-users /mnt/usr/local/bin/fluidos-users
 cp /usr/local/bin/fluidos-users-panel /mnt/usr/local/bin/fluidos-users-panel
+cp /usr/local/bin/fluidos-assistant /mnt/usr/local/bin/fluidos-assistant
+cp /usr/local/bin/fluidos-personalization /mnt/usr/local/bin/fluidos-personalization
 cp /usr/local/sbin/fluidos-app /mnt/usr/local/sbin/fluidos-app
 cp /usr/local/bin/fluidos-session /mnt/usr/local/bin/fluidos-session
 cp /usr/local/bin/fluidos-shell /mnt/usr/local/bin/fluidos-shell
+mkdir -p /mnt/usr/local/etc/rc.d
+install -m 0755 /usr/local/etc/rc.d/fluidos-graphics /mnt/usr/local/etc/rc.d/fluidos-graphics
 cp /home/fluid/.profile /mnt/home/fluid/.profile
 cp /home/fluid/.config/wayfire/wayfire.ini /mnt/home/fluid/.config/wayfire/wayfire.ini
 mkdir -p /mnt/usr/local/share/licenses/FluidOS /mnt/usr/local/share/doc/FluidOS
@@ -173,7 +180,9 @@ dbus_enable="YES"
 seatd_enable="YES"
 seatd_flags="-g video"
 sshd_enable="NO"
-kld_list="i915kms amdgpu"
+local_enable="YES"
+fluidos_graphics_enable="YES"
+# DRM se carga solo tras detectar un controlador Intel/AMD compatible.
 RC_EOF
 
 cat > /mnt/usr/local/etc/doas.conf <<'DOAS_EOF'

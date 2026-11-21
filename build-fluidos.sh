@@ -50,6 +50,7 @@ log "Integrando escritorio, arranque, instalador y avisos legales..."
 cp -Rp "$PROJECT_DIR/mfsbsd/conf/." "$MFSBSD_DIR/conf/"
 cp -Rp "$PROJECT_DIR/mfsbsd/tools/." "$MFSBSD_DIR/tools/"
 cp -Rp "$PROJECT_DIR/customfiles/." "$MFSBSD_DIR/customfiles/"
+chmod 0755 "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-assistant"     "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-personalization"     "$MFSBSD_DIR/customfiles/usr/local/etc/rc.d/fluidos-graphics"
 cp -Rp "$PROJECT_DIR/customscripts/." "$MFSBSD_DIR/customscripts/"
 mkdir -p "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos"
 install -m 0755 "$PROJECT_DIR/desktop/fluidos-shell.py" \
@@ -62,6 +63,8 @@ install -m 0755 "$PROJECT_DIR/desktop/fluidos-app-center.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-app-center.py"
 install -m 0755 "$PROJECT_DIR/desktop/fluidos-users-panel.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-users-panel.py"
+install -m 0755 "$PROJECT_DIR/desktop/fluidos-assistant.py" \
+    "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-assistant.py"
 install -m 0755 "$PROJECT_DIR/tools/fluidos-restore.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-restore.py"
 install -m 0755 "$PROJECT_DIR/tools/fluidos-users.py" \

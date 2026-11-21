@@ -10,3 +10,6 @@ out/*
 
 *.bak-nine-rounds
 *.bak-phase2
+# Local integration backups and Python bytecode
+*.pre-phase4-5
+*.bak-phase3
