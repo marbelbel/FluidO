@@ -54,6 +54,10 @@ cp -Rp "$PROJECT_DIR/customscripts/." "$MFSBSD_DIR/customscripts/"
 mkdir -p "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos"
 install -m 0755 "$PROJECT_DIR/desktop/fluidos-shell.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-shell.py"
+install -m 0755 "$PROJECT_DIR/desktop/fluidos-control.py" \
+    "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-control.py"
+install -m 0755 "$PROJECT_DIR/tools/fluidos-app.py" \
+    "$MFSBSD_DIR/customfiles/usr/local/sbin/fluidos-app"
 install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-session" \
     "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-session"
 install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-shell" \

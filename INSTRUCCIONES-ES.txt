@@ -1,0 +1,50 @@
+FluidOS - Ampliacion de las nueve rondas
+========================================
+
+ESTO ES UN PAQUETE DE INTEGRACION, NO UNA ISO.
+Se aplica sobre la carpeta del repositorio FluidO que ya tienes. No borra ni
+sustituye el repositorio completo.
+
+1. Descomprime el ZIP DENTRO de la carpeta principal del repositorio FluidO,
+   donde están README.md y build-fluidos.sh. Acepta combinar las carpetas.
+2. Abre PowerShell o una terminal en esa carpeta.
+3. Ejecuta:
+
+       py -3 apply-nine-rounds.py --dry-run
+       py -3 apply-nine-rounds.py
+
+   Si Windows no reconoce "py", instala Python 3 desde python.org y vuelve
+   a abrir la terminal. El primer comando solo revisa; el segundo aplica.
+4. Abre GitHub Desktop, revisa los cambios y crea un commit.
+   Los dos lanzadores nuevos deben conservar permiso ejecutable en Git:
+
+       git update-index --chmod=+x customfiles/usr/local/bin/fluidos-control
+       git update-index --chmod=+x customfiles/usr/local/bin/fluidos-backup
+
+5. Sube los cambios a tu repositorio y deja que GitHub Actions compile la ISO.
+   La ampliación cambia archivos de construcción, escritorio, instalador,
+   paquetes y pruebas.
+
+El integrador guarda copias .bak-nine-rounds de los archivos originales antes
+ de modificarlos. Si falta un archivo base o no encuentra el texto esperado,
+ se detiene antes de escribir los cambios. No sustituye archivos binarios ni
+ elimina el contenido anterior.
+
+NUEVO EN ESTA AMPLIACION
+- Panel gráfico Ajustes con preferencias guardadas por usuario.
+- Color de acento guardado y aplicado a los resaltados del dock/barra.
+- Primera especificación y verificador/instalador de paquetes nativos .fapp.
+- Validación de hashes, rutas y permisos del contenido de los paquetes.
+- Copia de seguridad manual con verificación SHA-256.
+- LibreOffice y el paquete de idioma español añadidos a la instalación prevista.
+- Pruebas automáticas para paquetes y para el integrador.
+
+LIMITES
+La tienda completa, firma digital de editores, sandbox y permisos efectivos por
+aplicación, actualizaciones automáticas, IA, sincronización, navegador propio,
+cifrado integral, recuperación gráfica y soporte ARM64 siguen en desarrollo.
+La preferencia de IA y otras preferencias que aún no tienen servicio conectado
+se guardan, pero no activan una función que todavía no existe.
+
+Prueba siempre primero en una máquina virtual con un disco virtual nuevo y
+vacío. No selecciones el disco que contiene Windows ni tus archivos.

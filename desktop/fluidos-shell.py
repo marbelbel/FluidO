@@ -6,7 +6,9 @@ not pretend that Wi-Fi, Bluetooth, brightness, or volume controls work when
 there is no backend connected to them.
 """
 
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -79,6 +81,7 @@ class FluidShell:
         if not GtkLayerShell.is_supported():
             raise RuntimeError("La sesión actual no ofrece GTK Layer Shell. Inicia FluidOS con Wayfire.")
         self.windows = []
+        self.settings = self._load_preferences()
         self._install_css()
         self._create_wallpaper()
         self._create_topbar()
@@ -86,9 +89,24 @@ class FluidShell:
         self.update_clock()
         GLib.timeout_add_seconds(20, self.update_clock)
 
+    def _load_preferences(self):
+        path = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.join(HOME, ".config")), "fluidos", "settings.json")
+        try:
+            with open(path, "r", encoding="utf-8") as stream:
+                data = json.load(stream)
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
     def _install_css(self):
         provider = Gtk.CssProvider()
-        provider.load_from_data(CSS)
+        accent = self.settings.get("appearance", {}).get("accent", "#69d9ff")
+        if not isinstance(accent, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", accent):
+            accent = "#69d9ff"
+        red, green, blue = (int(accent[i:i + 2], 16) for i in (1, 3, 5))
+        overrides = (f".top-button:hover {{ background: rgba({red}, {green}, {blue}, .20); }} "
+                     f".dock button:hover {{ background: rgba({red}, {green}, {blue}, .28); }}").encode()
+        provider.load_from_data(CSS + overrides)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
@@ -167,6 +185,7 @@ class FluidShell:
         bar.pack_start(self.top_button("Aplicaciones", self.show_launcher), False, False, 5)
         bar.pack_start(self.top_button("Archivos", self.open_files), False, False, 0)
         bar.pack_start(self.top_button("Sistema", self.show_system), False, False, 0)
+        bar.pack_start(self.top_button("Ajustes", lambda: launch(["fluidos-control"])), False, False, 0)
         bar.pack_start(Gtk.Box(), True, True, 0)
         self.clock = Gtk.Label(label="")
         self.clock.get_style_context().add_class("clock")
@@ -196,6 +215,7 @@ class FluidShell:
             ("▤", "Archivos", self.open_files),
             ("◎", "Navegador", lambda: launch(["firefox"])),
             ("⚙", "Sistema", self.show_system),
+            ("✧", "Ajustes", lambda: launch(["fluidos-control"])),
         ]
         for glyph, title, callback in items:
             btn = Gtk.Button(label=glyph)
@@ -239,6 +259,8 @@ class FluidShell:
             ("▤\nArchivos", self.open_files),
             ("◎\nNavegador", lambda: launch(["firefox"])),
             ("⚙\nInformación del sistema", self.show_system),
+            ("✧\nAjustes", lambda: launch(["fluidos-control"])),
+            ("▦\nOfimática", lambda: launch(["libreoffice"])),
             ("⏻\nApagar o reiniciar", self.show_power),
         ]
         if os.path.exists("/etc/fluidos-live"):

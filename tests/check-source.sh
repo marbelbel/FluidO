@@ -59,4 +59,18 @@ if grep -R -n -E 'fluidos"[[:space:]]*\|[[:space:]]*chroot|password.*fluidos' cu
     exit 1
 fi
 
+for file in \
+    desktop/fluidos-control.py \
+    tools/fluidos-app.py \
+    customfiles/usr/local/bin/fluidos-control \
+    customfiles/usr/local/bin/fluidos-backup \
+    docs/FORMATO-FAPP.md \
+    docs/PLAN-NUEVE-RONDAS.md \
+    tests/test_fluidos_app.py     tests/test_apply_patch.py     apply-nine-rounds.py; do
+    [ -s "$file" ] || { echo "Missing or empty: $file" >&2; exit 1; }
+done
+grep -q 'fluidos-control.py' build-fluidos.sh
+grep -q 'libreoffice es-libreoffice' customfiles/usr/local/sbin/fluidos-install
+grep -q 'fluidos-app.py' .github/workflows/build-fluidos.yml
+grep -q 'Ajustes' desktop/fluidos-shell.py
 echo "FluidOS source checks passed."

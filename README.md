@@ -66,3 +66,24 @@ El panel de sistema muestra datos reales del equipo. Wi-Fi, Bluetooth, brillo, v
 ## Licencias
 
 FluidOS conserva los avisos de FreeBSD, mfsBSD y los paquetes que integra. No se elimina la procedencia ni las licencias de terceros. Consulta `licenses/THIRD-PARTY.md`.
+
+## Ampliación de las nueve rondas
+
+La integración añade el panel **Ajustes**, preferencias personales guardadas en `~/.config/fluidos/settings.json`, primera versión del formato de paquetes nativos `.fapp`, comprobación de integridad, utilidades manuales de copia de seguridad y LibreOffice con idioma español en la instalación prevista.
+
+Para abrir Ajustes desde el escritorio, utiliza **Ajustes** en la barra superior, el dock o el lanzador. Para crear una copia de seguridad de la carpeta personal en una unidad externa ya montada:
+
+```sh
+fluidos-backup backup /ruta/de/la/unidad
+fluidos-backup verify /ruta/de/la/unidad/FluidOS-backup-FECHA.tar.gz
+```
+
+Para comprobar un paquete nativo sin instalarlo:
+
+```sh
+doas /usr/local/sbin/fluidos-app verify ejemplo.fapp
+```
+
+El documento `docs/FORMATO-FAPP.md` describe el formato y sus límites. `docs/PLAN-NUEVE-RONDAS.md` separa lo existente de lo que sigue pendiente.
+
+**Importante:** el registro de preferencias no significa que cada ajuste ya esté conectado. El gestor `.fapp` no tiene todavía tienda, firma digital ni aislamiento de procesos; las solicitudes de permisos se registran, pero aún no se aplican como barrera de seguridad. La copia de seguridad es manual y todavía no existe un asistente gráfico de restauración. La IA, sincronización, navegador propio, recuperación avanzada, cifrado integral y soporte ARM64 siguen pendientes.

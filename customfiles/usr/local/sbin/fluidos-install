@@ -107,7 +107,7 @@ fi
 [ -d /mnt/etc ] || fail "El instalador de disco no dejo el sistema montado en /mnt."
 
 say "Instalando las aplicaciones de FluidOS..."
-if ! pkg -r /mnt install -y dbus dejavu doas firefox foot drm-kmod gtk3 gtk-layer-shell py312-pycairo py312-pygobject python312 seatd wayfire wayland xwayland; then
+if ! pkg -r /mnt install -y dbus dejavu doas firefox foot drm-kmod gtk3 gtk-layer-shell py312-pycairo py312-pygobject python312 seatd wayfire wayland xwayland libreoffice es-libreoffice; then
     fail "No se pudieron instalar todos los paquetes. El sistema base puede estar instalado, pero el escritorio no esta completo."
 fi
 
@@ -122,6 +122,10 @@ fi
 mkdir -p /mnt/usr/local/lib/fluidos /mnt/usr/local/bin /mnt/usr/local/sbin \
          /mnt/usr/local/etc /mnt/home/fluid/.config/wayfire
 cp /usr/local/lib/fluidos/fluidos-shell.py /mnt/usr/local/lib/fluidos/fluidos-shell.py
+cp /usr/local/lib/fluidos/fluidos-control.py /mnt/usr/local/lib/fluidos/fluidos-control.py
+cp /usr/local/bin/fluidos-control /mnt/usr/local/bin/fluidos-control
+cp /usr/local/bin/fluidos-backup /mnt/usr/local/bin/fluidos-backup
+cp /usr/local/sbin/fluidos-app /mnt/usr/local/sbin/fluidos-app
 cp /usr/local/bin/fluidos-session /mnt/usr/local/bin/fluidos-session
 cp /usr/local/bin/fluidos-shell /mnt/usr/local/bin/fluidos-shell
 cp /home/fluid/.profile /mnt/home/fluid/.profile

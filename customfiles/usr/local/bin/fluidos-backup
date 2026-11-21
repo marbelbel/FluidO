@@ -1,0 +1,50 @@
+#!/bin/sh
+# Safe, user-initiated backup of the FluidOS user profile to a mounted drive.
+set -eu
+
+usage() {
+    echo "Uso: fluidos-backup backup DIRECTORIO | verify ARCHIVO.tar.gz | list DIRECTORIO" >&2
+    exit 2
+}
+
+ACTION="${1:-}"
+case "$ACTION" in
+    backup)
+        [ "$#" -eq 2 ] || usage
+        DEST="$2"
+        [ -d "$DEST" ] || { echo "El destino debe ser una carpeta ya montada." >&2; exit 1; }
+        [ -w "$DEST" ] || { echo "No tienes permiso para escribir en el destino." >&2; exit 1; }
+        STAMP="$(date -u '+%Y%m%d-%H%M%S')"
+        FINAL="$DEST/FluidOS-backup-$STAMP.tar.gz"
+        TEMP="$FINAL.partial"
+        trap 'rm -f "$TEMP"' EXIT HUP INT TERM
+        tar -czf "$TEMP" -C / home/fluid etc/fluidos-version etc/os-release
+        [ -s "$TEMP" ] || { echo "El archivo de copia está vacío." >&2; exit 1; }
+        mv "$TEMP" "$FINAL"
+        if command -v sha256 >/dev/null 2>&1; then
+            sha256 -q "$FINAL" > "$FINAL.sha256"
+        else
+            echo "Falta sha256; no se pudo crear la suma de comprobación." >&2
+            rm -f "$FINAL"
+            exit 1
+        fi
+        trap - EXIT HUP INT TERM
+        echo "Copia creada: $FINAL"
+        echo "Suma SHA-256: $FINAL.sha256"
+        ;;
+    verify)
+        [ "$#" -eq 2 ] || usage
+        FILE="$2"
+        [ -s "$FILE" ] && [ -s "$FILE.sha256" ] || { echo "Falta el archivo o su .sha256." >&2; exit 1; }
+        EXPECTED="$(awk 'NR==1 {print $1}' "$FILE.sha256")"
+        ACTUAL="$(sha256 -q "$FILE")"
+        [ "$EXPECTED" = "$ACTUAL" ] || { echo "ERROR: la copia no supera la comprobación SHA-256." >&2; exit 1; }
+        echo "Copia íntegra: $FILE"
+        ;;
+    list)
+        [ "$#" -eq 2 ] || usage
+        [ -d "$2" ] || usage
+        find "$2" -maxdepth 1 -type f -name 'FluidOS-backup-*.tar.gz' -print | sort
+        ;;
+    *) usage ;;
+esac
