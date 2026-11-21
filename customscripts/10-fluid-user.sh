@@ -58,4 +58,5 @@ chmod 0755 "$DESTDIR/usr/local/bin/fluidos-session" \
            "$DESTDIR/usr/local/bin/fluidos-shell" \
            "$DESTDIR/usr/local/sbin/fluidos-install"
 chmod 0755 "$DESTDIR/usr/local/bin/fluidos-app-center" "$DESTDIR/usr/local/bin/fluidos-restore" "$DESTDIR/usr/local/bin/fluidos-users"
+chmod 0755 "$DESTDIR/usr/local/bin/fluidos-users-panel"
 chmod 0755 "$DESTDIR/usr/local/lib/fluidos/fluidos-shell.py"

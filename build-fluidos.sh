@@ -60,6 +60,8 @@ install -m 0755 "$PROJECT_DIR/tools/fluidos-app.py" \
     "$MFSBSD_DIR/customfiles/usr/local/sbin/fluidos-app"
 install -m 0755 "$PROJECT_DIR/desktop/fluidos-app-center.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-app-center.py"
+install -m 0755 "$PROJECT_DIR/desktop/fluidos-users-panel.py" \
+    "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-users-panel.py"
 install -m 0755 "$PROJECT_DIR/tools/fluidos-restore.py" \
     "$MFSBSD_DIR/customfiles/usr/local/lib/fluidos/fluidos-restore.py"
 install -m 0755 "$PROJECT_DIR/tools/fluidos-users.py" \
@@ -68,6 +70,8 @@ install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-session" \
     "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-session"
 install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-app-center" \
     "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-app-center"
+install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-users-panel" \
+    "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-users-panel"
 install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-restore" \
     "$MFSBSD_DIR/customfiles/usr/local/bin/fluidos-restore"
 install -m 0755 "$PROJECT_DIR/customfiles/usr/local/bin/fluidos-users" \

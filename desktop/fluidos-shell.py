@@ -191,6 +191,7 @@ class FluidShell:
         bar.pack_start(self.top_button("Archivos", self.open_files), False, False, 0)
         bar.pack_start(self.top_button("Sistema", self.show_system), False, False, 0)
         bar.pack_start(self.top_button("Ajustes", lambda: launch(["fluidos-control"])), False, False, 0)
+        bar.pack_start(self.top_button("Usuarios", lambda: launch(["fluidos-users-panel"])), False, False, 0)
         bar.pack_start(self.top_button("Centro apps", lambda: launch(["fluidos-app-center"])), False, False, 0)
         bar.pack_start(Gtk.Box(), True, True, 0)
         self.clock = Gtk.Label(label="")
@@ -267,6 +268,7 @@ class FluidShell:
             ("◎\nNavegador", lambda: launch(["firefox"])),
             ("⚙\nInformación del sistema", self.show_system),
             ("✧\nAjustes", lambda: launch(["fluidos-control"])),
+            ("👤\nUsuarios", lambda: launch(["fluidos-users-panel"])),
             ("▣\nCentro de aplicaciones", lambda: launch(["fluidos-app-center"])),
             ("▦\nOfimática", lambda: launch(["libreoffice"])),
             ("⏻\nApagar o reiniciar", self.show_power),

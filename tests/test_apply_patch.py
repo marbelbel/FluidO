@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -65,11 +66,11 @@ cp /usr/local/lib/fluidos/fluidos-shell.py /mnt/usr/local/lib/fluidos/fluidos-sh
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.build_fixture(root)
-            dry = subprocess.run(["python3", "apply-nine-rounds.py", "--dry-run"], cwd=root, text=True, capture_output=True)
+            dry = subprocess.run([sys.executable, "apply-nine-rounds.py", "--dry-run"], cwd=root, text=True, capture_output=True)
             self.assertEqual(dry.returncode, 0, dry.stdout + dry.stderr)
-            applied = subprocess.run(["python3", "apply-nine-rounds.py"], cwd=root, text=True, capture_output=True)
+            applied = subprocess.run([sys.executable, "apply-nine-rounds.py"], cwd=root, text=True, capture_output=True)
             self.assertEqual(applied.returncode, 0, applied.stdout + applied.stderr)
-            second = subprocess.run(["python3", "apply-nine-rounds.py"], cwd=root, text=True, capture_output=True)
+            second = subprocess.run([sys.executable, "apply-nine-rounds.py"], cwd=root, text=True, capture_output=True)
             self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
             desktop = (root / "desktop/fluidos-shell.py").read_text(encoding="utf-8")
             self.assertIn("fluidos-control", desktop)

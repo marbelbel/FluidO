@@ -124,6 +124,7 @@ mkdir -p /mnt/usr/local/lib/fluidos /mnt/usr/local/bin /mnt/usr/local/sbin \
 cp /usr/local/lib/fluidos/fluidos-shell.py /mnt/usr/local/lib/fluidos/fluidos-shell.py
 cp /usr/local/lib/fluidos/fluidos-control.py /mnt/usr/local/lib/fluidos/fluidos-control.py
 cp /usr/local/lib/fluidos/fluidos-app-center.py /mnt/usr/local/lib/fluidos/fluidos-app-center.py
+cp /usr/local/lib/fluidos/fluidos-users-panel.py /mnt/usr/local/lib/fluidos/fluidos-users-panel.py
 cp /usr/local/lib/fluidos/fluidos-restore.py /mnt/usr/local/lib/fluidos/fluidos-restore.py
 cp /usr/local/lib/fluidos/fluidos-users.py /mnt/usr/local/lib/fluidos/fluidos-users.py
 cp /usr/local/bin/fluidos-control /mnt/usr/local/bin/fluidos-control
@@ -131,6 +132,7 @@ cp /usr/local/bin/fluidos-backup /mnt/usr/local/bin/fluidos-backup
 cp /usr/local/bin/fluidos-app-center /mnt/usr/local/bin/fluidos-app-center
 cp /usr/local/bin/fluidos-restore /mnt/usr/local/bin/fluidos-restore
 cp /usr/local/bin/fluidos-users /mnt/usr/local/bin/fluidos-users
+cp /usr/local/bin/fluidos-users-panel /mnt/usr/local/bin/fluidos-users-panel
 cp /usr/local/sbin/fluidos-app /mnt/usr/local/sbin/fluidos-app
 cp /usr/local/bin/fluidos-session /mnt/usr/local/bin/fluidos-session
 cp /usr/local/bin/fluidos-shell /mnt/usr/local/bin/fluidos-shell
