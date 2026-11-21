@@ -1,0 +1,197 @@
+#!/bin/sh
+# FluidOS installer (experimental). It only installs to a disk explicitly named
+# by the operator and never erases a disk automatically to bypass partition checks.
+set -eu
+
+say() { printf '\n[FluidOS] %s\n' "$*"; }
+fail() { printf '\n[ERROR] %s\n' "$*" >&2; exit 1; }
+
+[ "$(id -u)" -eq 0 ] || fail "Ejecuta este instalador desde el entorno Live con doas."
+
+say "INSTALADOR DE FluidOS 0.1.0-alpha"
+say "Instala FluidOS en un disco completo. Los datos del disco elegido se perderan."
+say "No uses un disco que contenga archivos importantes. Para VirtualBox, crea un VDI nuevo y vacio."
+
+if ! command -v zpool >/dev/null 2>&1 || ! command -v gpart >/dev/null 2>&1; then
+    fail "No se encuentran las herramientas de almacenamiento necesarias."
+fi
+
+DIST_MOUNT="/cdrom"
+mkdir -p "$DIST_MOUNT"
+if ! mount | grep -q " on ${DIST_MOUNT} "; then
+    if [ -c /dev/cd0 ]; then
+        mount -t cd9660 /dev/cd0 "$DIST_MOUNT" 2>/dev/null || true
+    fi
+fi
+
+DIST_DIR=""
+if mount | grep -q " on ${DIST_MOUNT} "; then
+    DIST_DIR="$(find "$DIST_MOUNT" -type f -name base.txz -print -quit | sed 's#/base.txz$##')"
+fi
+[ -n "$DIST_DIR" ] && [ -f "$DIST_DIR/kernel.txz" ] ||
+    fail "No encuentro base.txz y kernel.txz en el medio de instalacion. Comprueba que has arrancado la ISO FluidOS especial de instalacion."
+
+ZFSINSTALL="/root/bin/zfsinstall"
+[ -x "$ZFSINSTALL" ] || fail "No se encuentra el instalador ZFS incluido en el entorno Live."
+
+say "Discos detectados:"
+sysctl -n kern.disks 2>/dev/null || true
+printf '\nDispositivos de disco disponibles:\n'
+for path in /dev/ada[0-9]* /dev/da[0-9]* /dev/nvd[0-9]* /dev/nda[0-9]* /dev/vtbd[0-9]*; do
+    [ -c "$path" ] || continue
+    disk="${path#/dev/}"
+    case "$disk" in
+        ada[0-9]*|da[0-9]*|nvd[0-9]*|nda[0-9]*|vtbd[0-9]*) printf '  %s\n' "$disk" ;;
+    esac
+done
+
+printf '\nEscribe el nombre del disco COMPLETO (por ejemplo ada0): '
+read -r DISK
+printf '%s\n' "$DISK" | grep -Eq '^(ada|da|nvd|nda|vtbd)[0-9]+$' ||
+    fail "Nombre de disco no permitido. Escribe el nombre del disco completo, no el de una particion."
+[ -c "/dev/$DISK" ] || fail "No existe /dev/$DISK o no es un dispositivo valido."
+
+if mount | grep -q "/dev/${DISK}"; then
+    fail "El disco parece tener un volumen montado. No voy a tocarlo."
+fi
+
+say "Comprobando la tabla de particiones de $DISK..."
+if gpart show "$DISK" >/dev/null 2>&1; then
+    gpart show "$DISK" || true
+    fail "El disco ya tiene una tabla de particiones. No se modifico. Usa un disco virtual nuevo y completamente vacio."
+fi
+say "El disco no muestra una tabla de particiones. Se puede continuar con la confirmacion destructiva."
+printf '\nPara continuar, escribe exactamente: INSTALL FluidOS ON DISK %s\n> ' "$DISK"
+read -r CONFIRM
+[ "$CONFIRM" = "INSTALL FluidOS ON DISK $DISK" ] || fail "Confirmacion incorrecta. No se ha modificado ningun disco."
+
+BOOT_METHOD="$(sysctl -n machdep.bootmethod 2>/dev/null || echo Unknown)"
+case "$BOOT_METHOD" in
+    UEFI|uefi)
+        DEFAULT_MODE="U"
+        say "El entorno Live informa que se ha iniciado en modo UEFI."
+        ;;
+    BIOS|BIOS/Legacy|Legacy|legacy)
+        DEFAULT_MODE="B"
+        say "El entorno Live informa que se ha iniciado en modo BIOS/Legacy."
+        ;;
+    *)
+        DEFAULT_MODE=""
+        say "No se pudo detectar el modo de firmware. Debes elegirlo expresamente."
+        ;;
+esac
+if [ -n "$DEFAULT_MODE" ]; then
+    printf 'Modo para instalar: UEFI o BIOS [U/B, Enter para %s]: ' "$DEFAULT_MODE"
+else
+    printf 'Modo para instalar: escribe U para UEFI o B para BIOS: '
+fi
+read -r BOOT_CHOICE
+if [ -z "$BOOT_CHOICE" ] && [ -n "$DEFAULT_MODE" ]; then
+    BOOT_CHOICE="$DEFAULT_MODE"
+fi
+case "$BOOT_CHOICE" in
+    U|u|UEFI|uefi) EFI_FLAG="-E"; say "Se instalara el cargador UEFI." ;;
+    B|b|BIOS|bios|Legacy|legacy) EFI_FLAG=""; say "Se instalara el cargador BIOS/Legacy." ;;
+    *) fail "Modo de arranque no valido. No se ha comenzado a particionar el disco." ;;
+esac
+
+say "Creando particiones e instalando el sistema en $DISK..."
+# zfsinstall checks existing partition tables before writing; this script does not
+# run gpart destroy or dd against an existing disk.
+if [ -n "$EFI_FLAG" ]; then
+    "$ZFSINSTALL" -u "$DIST_DIR" -d "$DISK" -p zroot -c -E
+else
+    "$ZFSINSTALL" -u "$DIST_DIR" -d "$DISK" -p zroot -c
+fi
+
+[ -d /mnt/etc ] || fail "El instalador de disco no dejo el sistema montado en /mnt."
+
+say "Instalando las aplicaciones de FluidOS..."
+if ! pkg -r /mnt install -y dbus dejavu doas firefox foot drm-kmod gtk3 gtk-layer-shell py312-pycairo py312-pygobject python312 seatd wayfire wayland xwayland libreoffice es-libreoffice; then
+    fail "No se pudieron instalar todos los paquetes. El sistema base puede estar instalado, pero el escritorio no esta completo."
+fi
+
+say "Preparando la cuenta de usuario..."
+if ! pw -R /mnt groupshow video >/dev/null 2>&1; then
+    pw -R /mnt groupadd video
+fi
+if ! pw -R /mnt usershow fluid >/dev/null 2>&1; then
+    pw -R /mnt useradd fluid -m -g wheel -G video -s /bin/sh -c 'FluidOS Desktop User'
+fi
+
+mkdir -p /mnt/usr/local/lib/fluidos /mnt/usr/local/bin /mnt/usr/local/sbin \
+         /mnt/usr/local/etc /mnt/home/fluid/.config/wayfire
+cp /usr/local/lib/fluidos/fluidos-shell.py /mnt/usr/local/lib/fluidos/fluidos-shell.py
+cp /usr/local/lib/fluidos/fluidos-control.py /mnt/usr/local/lib/fluidos/fluidos-control.py
+cp /usr/local/lib/fluidos/fluidos-app-center.py /mnt/usr/local/lib/fluidos/fluidos-app-center.py
+cp /usr/local/lib/fluidos/fluidos-restore.py /mnt/usr/local/lib/fluidos/fluidos-restore.py
+cp /usr/local/lib/fluidos/fluidos-users.py /mnt/usr/local/lib/fluidos/fluidos-users.py
+cp /usr/local/bin/fluidos-control /mnt/usr/local/bin/fluidos-control
+cp /usr/local/bin/fluidos-backup /mnt/usr/local/bin/fluidos-backup
+cp /usr/local/bin/fluidos-app-center /mnt/usr/local/bin/fluidos-app-center
+cp /usr/local/bin/fluidos-restore /mnt/usr/local/bin/fluidos-restore
+cp /usr/local/bin/fluidos-users /mnt/usr/local/bin/fluidos-users
+cp /usr/local/sbin/fluidos-app /mnt/usr/local/sbin/fluidos-app
+cp /usr/local/bin/fluidos-session /mnt/usr/local/bin/fluidos-session
+cp /usr/local/bin/fluidos-shell /mnt/usr/local/bin/fluidos-shell
+cp /home/fluid/.profile /mnt/home/fluid/.profile
+cp /home/fluid/.config/wayfire/wayfire.ini /mnt/home/fluid/.config/wayfire/wayfire.ini
+mkdir -p /mnt/usr/local/share/licenses/FluidOS /mnt/usr/local/share/doc/FluidOS
+cp -Rp /usr/local/share/licenses/FluidOS/. /mnt/usr/local/share/licenses/FluidOS/
+cp -Rp /usr/local/share/doc/FluidOS/. /mnt/usr/local/share/doc/FluidOS/
+install -m 0644 /etc/os-release /mnt/etc/os-release
+install -m 0644 /etc/fluidos-version /mnt/etc/fluidos-version
+if [ -f /boot/fluidos-splash.png ]; then
+    cp /boot/fluidos-splash.png /mnt/boot/fluidos-splash.png
+    cat >> /mnt/boot/loader.conf <<'LOADER_PNG_EOF'
+
+# FluidOS Liquid Glass splash for the UEFI vt(4) loader
+splash="/boot/fluidos-splash.png"
+boot_mute="YES"
+LOADER_PNG_EOF
+fi
+if [ -f /boot/fluidos-splash.bmp ]; then
+    cp /boot/fluidos-splash.bmp /mnt/boot/fluidos-splash.bmp
+    cat >> /mnt/boot/loader.conf <<'LOADER_BMP_EOF'
+
+# FluidOS BMP splash compatibility for legacy syscons consoles
+splash_bmp_load="YES"
+bitmap_load="YES"
+bitmap_name="/boot/fluidos-splash.bmp"
+loader_logo="none"
+LOADER_BMP_EOF
+fi
+
+cat >> /mnt/etc/rc.conf <<'RC_EOF'
+
+# FluidOS desktop services
+hostname="FluidOS"
+ifconfig_DEFAULT="DHCP"
+dbus_enable="YES"
+seatd_enable="YES"
+seatd_flags="-g video"
+sshd_enable="NO"
+kld_list="i915kms amdgpu"
+RC_EOF
+
+cat > /mnt/usr/local/etc/doas.conf <<'DOAS_EOF'
+permit persist :wheel
+DOAS_EOF
+chmod 0400 /mnt/usr/local/etc/doas.conf
+FLUID_UID="$(pw -R /mnt usershow fluid | awk -F: '{print $3}')"
+WHEEL_GID="$(pw -R /mnt groupshow wheel | awk -F: '{print $3}')"
+[ -n "$FLUID_UID" ] && [ -n "$WHEEL_GID" ] || fail "No se pudieron obtener UID/GID del usuario instalado."
+chown -R "${FLUID_UID}:${WHEEL_GID}" /mnt/home/fluid
+chmod 0755 /mnt/home/fluid
+
+say "Montando los dispositivos del sistema para configurar la cuenta..."
+mount -t devfs devfs /mnt/dev
+say "Ahora crea una contrasena para el usuario fluid. No se establece ninguna contrasena fija."
+if ! chroot /mnt passwd fluid; then
+    umount /mnt/dev 2>/dev/null || true
+    fail "No se pudo establecer la contrasena. El sistema base puede estar instalado, pero la cuenta no esta lista."
+fi
+umount /mnt/dev
+
+say "FluidOS se ha instalado en $DISK. Revisa los mensajes anteriores y retira la ISO antes del siguiente arranque."
+say "Para reiniciar, ejecuta: shutdown -r now"
