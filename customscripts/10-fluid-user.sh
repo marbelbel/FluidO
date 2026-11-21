@@ -38,6 +38,7 @@ mkdir -p "$DESTDIR/usr/local/etc"
 cat > "$DESTDIR/usr/local/etc/doas.conf" <<'DOAS_EOF'
 permit nopass fluid as root cmd /usr/local/sbin/fluidos-install
 permit nopass fluid as root cmd /sbin/shutdown
+permit nopass fluid as root cmd /usr/local/sbin/fluidos-app
 DOAS_EOF
 chmod 0400 "$DESTDIR/usr/local/etc/doas.conf"
 
@@ -56,4 +57,5 @@ fi
 chmod 0755 "$DESTDIR/usr/local/bin/fluidos-session" \
            "$DESTDIR/usr/local/bin/fluidos-shell" \
            "$DESTDIR/usr/local/sbin/fluidos-install"
+chmod 0755 "$DESTDIR/usr/local/bin/fluidos-app-center" "$DESTDIR/usr/local/bin/fluidos-restore" "$DESTDIR/usr/local/bin/fluidos-users"
 chmod 0755 "$DESTDIR/usr/local/lib/fluidos/fluidos-shell.py"

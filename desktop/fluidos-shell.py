@@ -106,6 +106,11 @@ class FluidShell:
         red, green, blue = (int(accent[i:i + 2], 16) for i in (1, 3, 5))
         overrides = (f".top-button:hover {{ background: rgba({red}, {green}, {blue}, .20); }} "
                      f".dock button:hover {{ background: rgba({red}, {green}, {blue}, .28); }}").encode()
+        theme = self.settings.get("appearance", {}).get("theme", "glass")
+        if theme == "light":
+            overrides += b"window { color: #142638; } .topbar { background: rgba(235,246,253,.94); } .brand,.clock,.top-button { color: #142638; } .dock { background: rgba(225,241,250,.94); } .dock button { color: #142638; } .panel { background: rgba(238,247,252,.98); color: #142638; } .panel-title { color: #142638; }"
+        elif theme == "dark":
+            overrides += b".topbar { background: rgba(5,8,15,.97); } .dock { background: rgba(7,12,22,.96); } .panel { background: rgba(7,12,22,.99); }"
         provider.load_from_data(CSS + overrides)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
@@ -186,6 +191,7 @@ class FluidShell:
         bar.pack_start(self.top_button("Archivos", self.open_files), False, False, 0)
         bar.pack_start(self.top_button("Sistema", self.show_system), False, False, 0)
         bar.pack_start(self.top_button("Ajustes", lambda: launch(["fluidos-control"])), False, False, 0)
+        bar.pack_start(self.top_button("Centro apps", lambda: launch(["fluidos-app-center"])), False, False, 0)
         bar.pack_start(Gtk.Box(), True, True, 0)
         self.clock = Gtk.Label(label="")
         self.clock.get_style_context().add_class("clock")
@@ -216,6 +222,7 @@ class FluidShell:
             ("◎", "Navegador", lambda: launch(["firefox"])),
             ("⚙", "Sistema", self.show_system),
             ("✧", "Ajustes", lambda: launch(["fluidos-control"])),
+            ("▣", "Aplicaciones", lambda: launch(["fluidos-app-center"])),
         ]
         for glyph, title, callback in items:
             btn = Gtk.Button(label=glyph)
@@ -251,7 +258,7 @@ class FluidShell:
     def show_launcher(self):
         win, root = self.show_panel("Aplicaciones", 430, 300)
         search = Gtk.Entry()
-        search.set_placeholder_text("Buscar una aplicación")
+        search.set_placeholder_text("Buscar aplicaciones y archivos")
         root.pack_start(search, False, False, 0)
         grid = Gtk.Grid(row_spacing=9, column_spacing=9)
         root.pack_start(grid, True, True, 0)
@@ -260,6 +267,7 @@ class FluidShell:
             ("◎\nNavegador", lambda: launch(["firefox"])),
             ("⚙\nInformación del sistema", self.show_system),
             ("✧\nAjustes", lambda: launch(["fluidos-control"])),
+            ("▣\nCentro de aplicaciones", lambda: launch(["fluidos-app-center"])),
             ("▦\nOfimática", lambda: launch(["libreoffice"])),
             ("⏻\nApagar o reiniciar", self.show_power),
         ]
@@ -271,11 +279,43 @@ class FluidShell:
             btn.connect("clicked", lambda *_args, cb=callback, panel=win: (panel.hide(), cb()))
             grid.attach(btn, index % 3, index // 3, 1, 1)
 
+        file_results = []
         def filter_apps(entry):
             query = entry.get_text().strip().lower()
+            for result in file_results:
+                grid.remove(result)
+            file_results.clear()
             for child in grid.get_children():
                 label = child.get_label().replace("\n", " ").lower()
                 child.set_visible(not query or query in label)
+            if len(query) < 2:
+                return
+            row = (len(apps) + 2) // 3
+            visited = 0
+            for current, directories, filenames in os.walk(HOME):
+                directories[:] = [d for d in directories if not d.startswith(".") and d not in {".cache", ".local", "proc", "dev"}]
+                visited += 1
+                if visited > 500:
+                    break
+                for filename in filenames:
+                    if query not in filename.lower():
+                        continue
+                    full_path = os.path.join(current, filename)
+                    button = Gtk.Button(label="📄 " + os.path.relpath(full_path, HOME))
+                    button.get_style_context().add_class("app-button")
+                    def open_match(*_args, path=full_path, panel=win):
+                        panel.hide()
+                        try:
+                            Gio.AppInfo.launch_default_for_uri(Gio.File.new_for_path(path).get_uri(), None)
+                        except GLib.Error as exc:
+                            show_message(f"No se pudo abrir el archivo: {exc.message}")
+                    button.connect("clicked", open_match)
+                    grid.attach(button, 0, row, 3, 1)
+                    button.show_all()
+                    file_results.append(button)
+                    row += 1
+                    if len(file_results) >= 30:
+                        return
 
         search.connect("changed", filter_apps)
         win.show_all()
